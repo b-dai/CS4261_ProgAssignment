@@ -3,11 +3,12 @@
 </p>
 
 # CS 4261 First Programming Assignment
-Built using JavaScript and React framework for native iOS and Android platforms.
-\Incorporated react-native-game-engine and react-native-animated-sprite packages.
-\\Also uses Firebase and AsyncStorage to store high scores.
+Built using JavaScript and React framework for native iOS and Android platforms.<br/>
+Incorporated react-native-game-engine and react-native-animated-sprite packages.<br/>
+Also uses Firebase and AsyncStorage to store high scores.
 
 ## Screenshots
+Some example screenshots:<br/>
 <p align="center">
   <img src="https://github.com/b-dai/knight/blob/main/start.PNG" height="400" />
   <img src="https://github.com/b-dai/knight/blob/main/midGame.PNG" height="400" />
@@ -15,7 +16,8 @@ Built using JavaScript and React framework for native iOS and Android platforms.
 </p>
 
 ## How to Run
-Follow the instructions at https://reactnative.dev/docs/environment-setup to install React Native and Expo Go.
-Clone this repo into an expo project and cd into it.
-Make sure dependencies are installed with 'npm install' or 'yarn'.
-Run 'npx expo start' or 'npx expo start --tunnel' (if the first one doesn't work) while connected to Expo Go on phone.
+Follow the instructions at https://reactnative.dev/docs/environment-setup to install React Native and Expo Go.<br/>
+Clone this repo into an expo project and cd into it.<br/>
+Make sure dependencies are installed with 'npm install' or 'yarn'.<br/>
+Run 'npx expo start' or 'npx expo start --tunnel' (if the first one doesn't work) while connected to Expo Go on phone.<br/>
+It will ask you to scan a QR code in terminal to open Expo Go on phone.
