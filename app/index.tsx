@@ -1,4 +1,14 @@
 import { registerRootComponent } from 'expo';
-import App from '../App.js';
+import { AuthProvider } from '../AuthContext.js';
+import MainNavigator from '../MainNavigator.js';
+import React from 'react';
 
-registerRootComponent(App);
+function application() {
+    return (
+        <AuthProvider>
+            <MainNavigator />
+        </AuthProvider>
+    );
+}
+
+registerRootComponent(application);
