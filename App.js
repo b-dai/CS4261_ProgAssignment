@@ -1,9 +1,13 @@
-import React, { useState, useRef } from 'react';
-import { StyleSheet, Text, View, ImageBackground, Dimensions, TouchableOpacity, Modal } from 'react-native';
+import React, { useEffect, useState, useRef, useContext } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { StyleSheet, Text, View, ImageBackground, Dimensions, TouchableOpacity, Modal, Alert } from 'react-native';
 import { GameEngine } from 'react-native-game-engine';
 import AnimatedSprite from 'react-native-animated-sprite';
 import knightSprite from './components/knightSprite';
 import { Swords } from './components/swords';
+import { AuthContext } from './AuthContext';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db, auth } from './firebaseConfig';
 
 // get device screen dimensions
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -28,6 +32,65 @@ export default function App() {
   const SCORE_MULT = 0.3;
   const engine = useRef(null);
   const [score, setScore] = useState(0);
+  const [highScore, setHighScore] = useState(null);
+
+  // user login context
+  const { user } = useContext(AuthContext);
+
+  useEffect(() => {
+    if (user) {
+      const fetchHighScore = async () => {
+        const userRef = doc(db, 'highScores', user.uid);
+        try {
+          const docSnap = await getDoc(userRef);
+          if (docSnap.exists()) {
+            setHighScore(docSnap.data().score);
+          } else {
+            // Initialize high score if not present
+            await setDoc(userRef, { score: 0, date: new Date() });
+            setHighScore(0);
+          }
+        } catch (error) {
+          Alert.alert('Error', 'Failed to fetch high score.');
+        }
+      };
+
+      fetchHighScore();
+    }
+  }, [user]);
+
+  const saveHighScore = async () => {
+    if (!user) return;
+    const userRef = doc(db, 'highScores', user.uid);
+    try {
+      const docSnap = await getDoc(userRef);
+      if (docSnap.exists()) {
+        const currentHighScore = docSnap.data().score;
+        if (score > currentHighScore) {
+          await setDoc(userRef, { score: score, date: new Date() }, { merge: true });
+          setHighScore(score); // Update state to reflect new high score
+        }
+      } else {
+        // Create new high score document
+        await setDoc(userRef, { score: score, date: new Date() });
+        setHighScore(score);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save high score.');
+    }
+  };
+
+  const navigation = useNavigation();
+  const handleLogout = () => {
+    auth.signOut()
+      .then(() => {
+        Alert.alert('Successfully logged out', '');
+        framesPassed = 0;
+      })
+      .catch(error => {
+        Alert.alert('Error', 'Failed to logout. Please try again.');
+      });
+  };
 
   // game engine logic (happens each frame)
   function GameLoop (entities, { events, dispatch }) {
@@ -85,6 +148,7 @@ export default function App() {
     setStartModalVis(false);
     setGameRunning(true);
     setVis([true, false]);
+    framesPassed = 0;
   };
   
   // on Play Again clicked
@@ -105,7 +169,14 @@ export default function App() {
 
   return (
     <ImageBackground source={require('./assets/back_image.png')} style={styles.container}>
-      {!onStartModal && <Text style={styles.scoreText}>{score}</Text>}
+      {!onStartModal && (
+        <>
+            <Text style={styles.scoreText}>{score}</Text>
+            {onGameOverModal && highScore !== null && (
+                <Text style={styles.highScoreText}>High Score: {highScore}</Text>
+            )}
+        </>
+        )}
       <Modal animationType='slide' visible={onStartModal} transparent={true}>
         <TouchableOpacity style={styles.startButton} onPress={startGame}>
           <Text style={styles.startText}>Start</Text>
@@ -114,6 +185,9 @@ export default function App() {
       <Modal animationType='slide' visible={onGameOverModal} transparent={true}>
         <TouchableOpacity style={styles.startButton} onPress={restartGame}>
           <Text style={styles.startText}>Play Again</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
       </Modal>
       <AnimatedSprite
@@ -158,17 +232,18 @@ export default function App() {
             setGameRunning(false);
             setVis([false, false]);
             setGameOverVis(true);
+            saveHighScore();
           }
         }}/>
       <View style={styles.touchRegions}>
-        <TouchableOpacity style={styles.leftRegion} activeOpacity={0.0} onPress={onLeftPress}>
+        <TouchableOpacity style={styles.leftRegion} onPress={onLeftPress}>
           <Text>
-            .                                                                                                                                                   .
+            ..
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.rightRegion} activeOpacity={0.0} onPress={onRightPress}>
+        <TouchableOpacity style={styles.rightRegion} onPress={onRightPress}>
           <Text>
-            ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+            ..
           </Text>
         </TouchableOpacity>
       </View>
@@ -185,7 +260,7 @@ const styles = StyleSheet.create({
   },
   touchRegions: {
     flex: null,
-    opacity: 0.0,
+    opacity: 0.02,
     flexDirection: 'row',
     position: "absolute",
     width: SCREEN_WIDTH,
@@ -193,11 +268,11 @@ const styles = StyleSheet.create({
   },
   leftRegion: {
     flex: 1,
-    backgroundColor: "#f00",
+    backgroundColor: "#fff",
   },
   rightRegion: {
     flex: 1,
-    backgroundColor: "#0f0",
+    backgroundColor: "#fff",
   },
   startButton: {
     marginTop: 500,
@@ -214,12 +289,35 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 20,
   },
+  logoutButton: {
+    top: 10,
+    marginHorizontal: 124,
+    paddingVertical: 16,
+    borderWidth: 2,
+    borderColor: '#fff',
+    borderRadius: 16,
+    backgroundColor: '#555',
+    alignItems: 'center',
+  },
+  logoutText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 20,
+  },
   scoreText: {
     flex: null,
     color: '#000',
     top: 128,
     fontWeight: 'bold',
     fontSize: 40,
+    position: "absolute",
+  },
+  highScoreText: {
+    flex: null,
+    color: '#fff',
+    top: 300,
+    fontWeight: 'bold',
+    fontSize: 32,
     position: "absolute",
   },
   engine: {
