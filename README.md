@@ -4,7 +4,8 @@
 
 # CS 4261 First Programming Assignment
 Built using JavaScript and React framework for native iOS and Android platforms.
-Incorporated react-native-game-engine and react-native-animated-sprite packages.
+\Incorporated react-native-game-engine and react-native-animated-sprite packages.
+\\Also uses Firebase and AsyncStorage to store high scores.
 
 ## Screenshots
 <p align="center">
