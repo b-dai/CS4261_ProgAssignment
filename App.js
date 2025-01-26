@@ -17,7 +17,7 @@ const PLAYER_HEAD_Y = SCREEN_HEIGHT / 3 * 2;
 
 // global game variables
 var framesPassed = 0;
-var curSpeed = 5;
+var curSpeed = 7;
 
 export default function App() {
 
@@ -28,8 +28,8 @@ export default function App() {
   const [gameRunning, setGameRunning] = useState(false);
   
   // game engine calculation variables
-  const BASE_SPEED = 5;
-  const SCORE_MULT = 0.3;
+  const BASE_SPEED = 7;
+  const SCORE_MULT = 0.5;
   const engine = useRef(null);
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(null);
@@ -51,7 +51,7 @@ export default function App() {
             setHighScore(0);
           }
         } catch (error) {
-          Alert.alert('Error', 'Failed to fetch high score.');
+          Alert.alert('Error', 'High score not found.');
         }
       };
 
