@@ -17,7 +17,7 @@ const PLAYER_HEAD_Y = SCREEN_HEIGHT / 3 * 2;
 
 // global game variables
 var framesPassed = 0;
-var curSpeed = 6;
+var curSpeed = 7;
 
 export default function App() {
 
